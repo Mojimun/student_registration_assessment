@@ -80,6 +80,6 @@ Rails.application.configure do
     :authentication => :plain,
     :domain => 'gmail.com',
     :user_name => 'mojimunislam@gmail.com',
-    :password => 'xhxhbcwcoqaifhew',
+    :password => 'XXXXX',
   }
 end
