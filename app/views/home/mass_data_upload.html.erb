@@ -1,0 +1,36 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<div style="float:left;width:100%;border:0px solid;margin-bottom:20px;">
+					<h3> Upload Student details <span style="font-size:19px;color:red;"> (Format of File : students.csv)</span> </h3>
+
+					<form action="/save_mass_data_upload" enctype="multipart/form-data" method="post">
+
+						<label for="upload_file">Select File</label> :   
+						<div> 
+							<div class="input-group">
+								<label class="input-group-btn">
+									<span class="btn btn-primary">
+								Browse&hellip; <input type="file" id="upload_datafile" onchange="set_file_txt(this);" style="display: none;" multiple name="upload[datafile]">
+									</span>
+								</label>
+								 <input type="text" class="form-control" readonly style="width:200px;" id="filename">
+							</div> 
+						</div>
+						<div  style="float:left;margin-top:20px;"> 
+							<%= submit_tag "Upload" ,:class=>"show_btn" %>
+						</div>
+					</form>
+
+					 <br>
+					 <br>
+					 <%if params[:status].present? %>
+						<h3 style="color:red"><%=params[:status] %></h3>
+					 <%end%> 
+			</div>
+
+            <script>
+          
+             
+            function set_file_txt(this_obj){ 
+                $("#filename").val($("#upload_datafile").val()); 
+            }
+            </script>

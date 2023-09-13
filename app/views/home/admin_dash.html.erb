@@ -1,0 +1,349 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="/javascripts/ag-grid-enterprise18.1.1.min.js"></script>
+<link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
+
+<style>
+    body {
+		font-family: Arial, Helvetica, sans-serif;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	.input-container {
+		display: -ms-flexbox;
+		/* IE10 */
+		display: flex;
+		width: 100%;
+		margin-bottom: 15px;
+	}
+
+    .ag-layout-normal.ag-root-wrapper-body {
+		width: auto;
+	}
+
+	.ag-theme-balham .ag-cell-label-container {
+		height: 100%;
+		/* width: max-content; */
+	}
+
+	.ag-theme-balham .ag-cell {
+		line-height: 26px;
+		padding-left: 12px;
+		padding-right: 12px;
+		border: 1px solid transparent;
+		padding-left: 0px;
+		padding-right: 11px;
+	}
+
+	.ag-theme-balham {
+		margin: 0px 40px 10px 5px !important;
+	}
+
+	.ag-theme-balham .ag-header-cell,
+	.ag-theme-balham .ag-header-group-cell {
+		line-height: 20px !important;
+	}
+
+	.ag-paging-row-summary-panel,
+	.ag-paging-page-summary-panel {
+		display: none;
+	}
+
+	.ag-cell-focus {
+		background-color: #cce6ff !important;
+	}
+
+	/*new added*/
+	.ag-header {
+		position: inherit;
+	}
+
+	.ag-theme-balham .ag-header-cell-label .ag-header-cell-text {
+		width: 100%;
+	}
+
+	.ag-filter {
+		position: inherit;
+		overflow: hidden;
+	}
+
+    /* loader start */
+		.display-none {
+			display: none !important;
+		}
+
+		.overlay {
+			position: fixed;
+			margin: 0px;
+			padding: 0px;
+			right: 0px;
+			top: 0px;
+			width: 100%;
+			height: 100%;
+			z-index: 9999;
+			opacity: 0.8;
+		}
+
+		.img {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			margin: auto;
+		}
+
+		.modal-content::-webkit-scrollbar {
+			display: none;
+		}
+
+		/* loader end */
+</style>
+<body>
+    <% if user_signed_in? %>
+        <% if current_user.user_type == "admin" %>
+            <h3>Hello! <strong><%= current_user.email %></strong> you are Login as an admin | <%= link_to "Sign out", destroy_user_session_path, :class => 'navbar-link' %></h3>
+            <div style="margin: 10px 0">
+				<button onclick="onBtnExport()">Download CSV Student Details</button>
+			 
+				<button ><a href ="/mass_data_upload" target="_blank">Upload Student Details</a></button>
+			</div>
+            <div id="loader" class="overlay display-none">
+                <img class="img" src="images/loader.gif" />
+            </div>
+            <div>
+                <div id="agGrid" style="height: 400px; width: 100%;" class="ag-theme-balham"></div>
+            </div>
+            <div id="editModal" class="modal fade">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Edit Student</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editForm">
+                                <div class="input-field">
+                                    <input type="text" id="editName" name="name">
+                                    <label for="editName">Name</label>
+                                </div>
+                                    <input type="hidden" id="user_id" name="name">
+                                <div class="input-field">
+                                    <input type="date" id="editDob" name="dob">
+                                    <label for="editDob">Date of Birth</label>
+                                </div>
+                                <div class="input-field">
+                                    <input type="text" id="editAddress" name="address">
+                                    <label for="editAddress">Address</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% end %>
+    <% end %>
+</body>
+
+<script>
+ 
+    var $ = jQuery.noConflict();
+
+    var columnDefs = [
+		{ headerName: "Student Name", field: "name", cellStyle: { 'font-weight': 'bold', 'color': '#666666', 'padding-top': '15px', 'font-size': '15px', cellStyle: { 'padding-top': '15px', 'color': '#686868' } } },
+		{ headerName: "Email", field: "email", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+		{ headerName: "Date of Birth", field: "dob", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+		{ headerName: "Address", field: "address", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+		{ headerName: "Varification Status", field: "varified_by_admin&id", valueGetter: fullNameGetter, cellRenderer: VarificationFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+		{ headerName: "Edit", field: "id", cellRenderer: EditFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+		{ headerName: "Delete", field: "id", cellRenderer: DeleteFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } }
+	];
+
+    function fullNameGetter(params) {
+		return params.data.varified_by_admin + '_' + params.data.id;
+	}
+
+   	var gridOptions;
+	gridOptions =
+	{
+		columnDefs: columnDefs,
+		rowData: null,
+		enableSorting: true,
+		enableFilter: true,
+		rowSelection: 'multiple',
+		headerHeight: 50,
+		rowHeight: 60,
+		enableRangeSelection: true,
+		enableStatusBar: false,
+		pagination: true,
+        suppressExcelExport: true,
+		suppressRowClickSelection: true,
+		onGridReady: function () { },
+		components: {
+			'editFieldRender': EditFieldRender,
+			'deleteFieldRender': DeleteFieldRender
+		},
+		tooltipShowDelay: 0,
+		tooltipHideDelay: 200000,
+	};
+
+	function onBtnExport() {
+        const columnsToInclude = ['name', 'email', 'dob', 'address'];
+        gridOptions.api.exportDataAsCsv({
+            columnKeys: columnsToInclude,
+            fileName: 'student_data.csv'
+    });
+    }
+
+    function get_grid_load() {
+		createNewDatasource();
+    }
+    $(document).ready(function () {
+        get_grid_load();
+        var gridDiv = document.querySelector('#agGrid');
+		new agGrid.Grid(gridDiv, gridOptions);
+	});
+
+    function createNewDatasource() {
+		$('#loader').removeClass('display-none')
+		$.ajax({
+			type: "get",
+			url: "/all_user",
+			success: function (msg) {
+				var grid_data = msg;
+				gridOptions.api.setRowData(msg);
+				$('#loader').addClass('display-none')
+			}
+		});
+
+	}
+
+    function VarificationFieldRender() { }
+	function EditFieldRender() { }
+	function DeleteFieldRender() { }
+
+    VarificationFieldRender.prototype.init = function (params) {
+        console.log(params.value.split("_")[0]);
+		this.eGui = document.createElement('div');
+		var text = '';
+		if (params.value.split("_")[0] != "false")
+            text = '<span style = "color: green;"> Varified </span>'
+        else
+			text = '<button id="" onclick="handleClickVarification(\'' + params.value.split("_")[1] + '\')">Varify</button>'
+		this.eGui.innerHTML = text;
+	};
+
+	VarificationFieldRender.prototype.getGui = function () {
+		return this.eGui;
+	};
+
+	EditFieldRender.prototype.init = function (params) {
+        this.eGui = document.createElement('div');
+        var text = '';
+        if (params.value)
+            text = '<button class="edit-button" data-userid="' + params.value + '">Edit</button>';
+        this.eGui.innerHTML = text;
+    };
+
+    EditFieldRender.prototype.getGui = function () {
+        return this.eGui;
+    };
+
+	DeleteFieldRender.prototype.init = function (params) {
+		this.eGui = document.createElement('div');
+		var text = '';
+		if (params.value)
+			text = '<button id="modalDelete" onclick="handleClickDelete(\'' + params.value + '\')">Delete</button>'
+		this.eGui.innerHTML = text;
+	};
+
+	DeleteFieldRender.prototype.getGui = function () {
+		return this.eGui;
+	};
+
+    function handleClickVarification(userID) {
+		$.ajax({
+			type: "post",
+			url: '/user_verify',
+			data: { id: userID },
+            headers: {
+                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+            },
+			success: function (msg) {
+				alert("Student Varified Sucessfully")
+                get_grid_load();
+			}
+		});
+	}
+
+	function handleClickDelete(id) {
+		$.ajax({
+			type: "post",
+			url: '/user_delete',
+			data: { id: id },
+            headers: {
+                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+            },
+			success: function (msg) {
+				alert("Student Deleted Sucessfully")
+                get_grid_load();
+			}
+		});
+	}
+
+    function handleClickEdit(userID) {
+		$.ajax({
+			type: "get",
+			url: '/user_details',
+			data: { id: userID },
+			success: function (msg) {
+                console.log(msg);
+				editValueSet(msg);
+			}
+		});
+	}
+    function editValueSet(data) {
+        $('#editName').val(data.name);
+        $('#user_id').val(data.id);
+        $('#editDob').val(data.dob);
+        $('#editAddress').val(data.address);
+        
+        $('#editModal').modal('show');
+    }
+
+    $('#editForm').submit(function (e) {
+        e.preventDefault();
+
+        const editedData = {
+            name: $('#editName').val(),
+            dob: $('#editDob').val(),
+            address: $('#editAddress').val(),
+            id: $('#user_id').val(),
+        };
+        console.log(editedData)
+        $.ajax({
+			type: "post",
+			url: '/user_update',
+			data: editedData,
+            headers: {
+                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+            },
+			success: function (msg) {
+                $('#editModal').modal('hide');
+				alert("Student Edited Sucessfully")
+                get_grid_load();
+			}
+		});
+    });
+    $(document).on('click', '.edit-button', function () {
+        var userID = $(this).data('userid');
+        handleClickEdit(userID);
+    });
+
+</script>
