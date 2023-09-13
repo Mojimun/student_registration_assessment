@@ -10,8 +10,8 @@ task happy_bdy: [:environment] do
         current_date = Time.now.strftime("%Y-%m-%d")
         current_date = Date.parse(current_date)
         user_dob = user[:dob]
-        one_year_before_current_date = current_date.prev_year
-        recipients_arr << user[:email] if user_dob == one_year_before_current_date
+         
+        recipients_arr << user[:email] if user_dob.strftime("%m-%d") == current_date.strftime("%m-%d")
     end
     UserMailer.send_mail(recipients_arr, subject, message).deliver
 end
