@@ -21,8 +21,17 @@ class HomeController < ApplicationController
     end
 
     def all_user
-        data = User.where.not(user_type: "admin")
-        render :json => data
+        user = User.includes(:avatar_attachment).where.not(user_type: "admin").map do |user|{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            dob: user.dob,
+            address: user.address,
+            varified_by_admin: user.varified_by_admin,
+            avatar_url: user.avatar.attachment ? url_for(user.avatar) : "https://t4.ftcdn.net/jpg/02/29/75/83/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg"
+        }
+        end
+        render :json => user
     end
 
     def user_details
@@ -38,51 +47,51 @@ class HomeController < ApplicationController
     end
 
     def user_update
-        puts"params==========#{params}"
         data = User.user_update(params)
     end
-    def undefined
-        render :plain => false
-    end
-	
-	def mass_data_upload
-
-    end    
-
+    	
     def save_mass_data_upload
-        name =  params[:upload]['datafile'].original_filename
-		directory = "/mnt/d/assesment/"
-		 
-		name_without_extension,extension= name.split(".")
+        csv_file =  params[:csv_file]	 
+		file_extention = File.extname(csv_file.original_filename)
 		@error_msg=""
-		if extension =="csv"
-				path = File.join(directory, name)# create the file path
-				File.open(path, "wb") { |f| f.write( params[:upload]['datafile'].read) }# write the file
-                total_count=0
-				CSV.foreach(path, headers: true) do |row|
-
-                    begin
-                        User.create!(
+		if file_extention ==".csv"
+            total_count=0
+            directory = "/mnt/d/assesment/user_registration_system/public/uploads"
+            if !(File.directory? directory) 
+               FileUtils.mkdir_p directory, :mode => 0777 rescue nil
+           end
+            time = Time.now().strftime("%m_%d_%Y_%I_%M_%S%p")
+            file_name = csv_file.original_filename.gsub(file_extention, "_").gsub(" ", "_")
+            target_file_name = "#{file_name}_#{time}#{file_extention}"
+            target_file_name_path="#{directory}/#{target_file_name}"
+            FileUtils.move params[:csv_file].path, target_file_name_path
+            File.open(target_file_name_path, "wb") { |f| f.write( params[:csv_file].read) }
+            CSV.foreach(target_file_name_path, headers: true) do |row|
+                begin
+                    user = User.find_by(email: row['email'])
+                    if user.nil?
+                        user = User.create!(
                         email: row['email'],
                         name: row['name'],
                         dob: row['dob'],
-                        address:row['address'],
-                        password:"test123456"
+                        address: row['address'],
+                        password: row['dob'].to_s.strip.gsub("-", "")
                         )
+                        password = row['dob'].to_s.strip.gsub("-", "")
+                        UserMailer.welcome_email(user, password).deliver
                         total_count +=1
-                    rescue
-                        
-                    end    
+                    end
+                rescue
                 end    
-				
-				@error_msg="File Processed Successfully"
-                if total_count==0
-                    @error_msg="Records already exists"
-                end    
-			
+            end    
+            @error_msg="File Processed Successfully"
+            if total_count==0
+                @error_msg="Records already exists"
+            end    	
 		else
 			@error_msg="Format of file is not supported"
 		end 
-		redirect_to "/mass_data_upload?status=#{@error_msg}"
+        render plain: @error_msg
     end   
+      
 end

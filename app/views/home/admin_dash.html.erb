@@ -1,10 +1,13 @@
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<script src="/javascripts/ag-grid-enterprise18.1.1.min.js"></script>
-<link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>
-
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="/javascripts/ag-grid-enterprise18.1.1.min.js"></script>
+    <link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+</head>
 <style>
     body {
 		font-family: Arial, Helvetica, sans-serif;
@@ -73,46 +76,45 @@
 	}
 
     /* loader start */
-		.display-none {
-			display: none !important;
-		}
+    .display-none {
+        display: none !important;
+    }
 
-		.overlay {
-			position: fixed;
-			margin: 0px;
-			padding: 0px;
-			right: 0px;
-			top: 0px;
-			width: 100%;
-			height: 100%;
-			z-index: 9999;
-			opacity: 0.8;
-		}
+    .overlay {
+        position: fixed;
+        margin: 0px;
+        padding: 0px;
+        right: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        opacity: 0.8;
+    }
 
-		.img {
-			position: absolute;
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			margin: auto;
-		}
+    .img {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
 
-		.modal-content::-webkit-scrollbar {
-			display: none;
-		}
+    .modal-content::-webkit-scrollbar {
+        display: none;
+    }
 
-		/* loader end */
+    /* loader end */
 </style>
 <body>
     <% if user_signed_in? %>
         <% if current_user.user_type == "admin" %>
             <h3>Hello! <strong><%= current_user.email %></strong> you are Login as an admin | <%= link_to "Sign out", destroy_user_session_path, :class => 'navbar-link' %></h3>
             <div style="margin: 10px 0">
-				<button onclick="onBtnExport()">Download CSV Student Details</button>
-			 
-				<button ><a href ="/mass_data_upload" target="_blank">Upload Student Details</a></button>
-			</div>
+                <button onclick="onBtnExport()">Download CSV Student Details</button>
+                <button data-bs-toggle="modal" id ="uploadModalOpen" data-bs-target="#uploadModal">Upload Student Details</button>
+            </div>
             <div id="loader" class="overlay display-none">
                 <img class="img" src="images/loader.gif" />
             </div>
@@ -129,17 +131,17 @@
                         <div class="modal-body">
                             <form id="editForm">
                                 <div class="input-field">
-                                    <input type="text" id="editName" name="name">
                                     <label for="editName">Name</label>
+                                    <input type="text" id="editName" name="name">
                                 </div>
-                                    <input type="hidden" id="user_id" name="name">
+                                <input type="hidden" id="user_id" name="user_id">
                                 <div class="input-field">
-                                    <input type="date" id="editDob" name="dob">
                                     <label for="editDob">Date of Birth</label>
+                                    <input type="date" id="editDob" name="dob">
                                 </div>
                                 <div class="input-field">
-                                    <input type="text" id="editAddress" name="address">
                                     <label for="editAddress">Address</label>
+                                    <input type="text" id="editAddress" name="address">
                                 </div>
                                 <button type="submit" class="btn btn-primary">Save</button>
                             </form>
@@ -147,203 +149,267 @@
                     </div>
                 </div>
             </div>
+
+            <div id="uploadModal" class="modal fade">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Upload Student details</h5>
+                            <span style="font-size: 13px; color: red; margin-left: 5px;">(Format of File : students.csv)</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div style="justify-content: center;display: flex;">
+                                <label for="upload_file">Select File</label> :
+                                <input type="file" id="upload_datafile" style ="margin-left: 12px;" multiple name="upload[datafile]">
+                            </div>
+                            <div style="justify-content: center;display: flex;margin-top: 44px;">
+                                <button id="uploadButton">Upload</button>
+                            </div>
+                            <div id="responseMessage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your JavaScript code -->
+            <script>
+                var $ = jQuery.noConflict();
+                var columnDefs = [
+                    {headerName: "", field: "avatar_url", minWidth: 150, width: 100, cellRenderer: ImageCellRenderer, cellStyle: { 'border': '1px solid grey', 'border-radius': '50%', 'height': '40px', 'width': '40px', 'left': '20px', 'top': '10px', } },
+                    { headerName: "Student Name", field: "name", cellStyle: { 'font-weight': 'bold', 'color': '#666666', 'padding-top': '15px', 'font-size': '15px', cellStyle: { 'padding-top': '15px', 'color': '#686868' } } },
+                    { headerName: "Email", field: "email", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+                    { headerName: "Date of Birth", field: "dob", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+                    { headerName: "Address", field: "address", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+                    { headerName: "Varification Status", field: "varified_by_admin&id", valueGetter: fullNameGetter, cellRenderer: VarificationFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+                    { headerName: "Edit", field: "id", cellRenderer: EditFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
+                    { headerName: "Delete", field: "id", cellRenderer: DeleteFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } }
+                ];
+
+                function fullNameGetter(params) {
+                    return params.data.varified_by_admin + '_' + params.data.id;
+                }
+
+                var gridOptions;
+                gridOptions =
+                {
+                    columnDefs: columnDefs,
+                    rowData: null,
+                    enableSorting: true,
+                    enableFilter: true,
+                    rowSelection: 'multiple',
+                    headerHeight: 50,
+                    rowHeight: 60,
+                    enableRangeSelection: true,
+                    enableStatusBar: false,
+                    pagination: true,
+                    suppressExcelExport: true,
+                    suppressRowClickSelection: true,
+                    onGridReady: function () { },
+                    components: {
+                        'editFieldRender': EditFieldRender,
+                        'deleteFieldRender': DeleteFieldRender
+                    },
+                    tooltipShowDelay: 0,
+                    tooltipHideDelay: 200000,
+                };
+
+                function onBtnExport() {
+                    const columnsToInclude = ['name', 'email', 'dob', 'address'];
+                    gridOptions.api.exportDataAsCsv({
+                        columnKeys: columnsToInclude,
+                        fileName: 'student_data.csv'
+                    });
+                }
+
+                document.getElementById('uploadModalOpen').addEventListener('click', function() {
+                    $('#upload_datafile').val('');
+                    var modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                    modal.show();
+                });
+                
+                function get_grid_load() {
+                    createNewDatasource();
+                }
+                $(document).ready(function () {
+                    get_grid_load();
+                    var gridDiv = document.querySelector('#agGrid');
+                    new agGrid.Grid(gridDiv, gridOptions);
+                });
+
+                function createNewDatasource() {
+                    $('#loader').removeClass('display-none')
+                    $.ajax({
+                        type: "get",
+                        url: "<%= all_user_path %>",
+                        success: function (msg) {
+                            var grid_data = msg;
+                            gridOptions.api.setRowData(msg);
+                            $('#loader').addClass('display-none')
+                        }
+                    });
+                }
+
+                function VarificationFieldRender() { } 
+                function ImageCellRenderer() { }
+                function EditFieldRender() { }
+                function DeleteFieldRender() { }
+
+                VarificationFieldRender.prototype.init = function (params) {
+                    console.log(params.value.split("_")[0]);
+                    this.eGui = document.createElement('div');
+                    var text = '';
+                    if (params.value.split("_")[0] != "false")
+                        text = '<span style = "color: green;"> Varified </span>'
+                    else
+                        text = '<button id="" onclick="handleClickVarification(\'' + params.value.split("_")[1] + '\')">Varify</button>'
+                    this.eGui.innerHTML = text;
+                };
+
+                VarificationFieldRender.prototype.getGui = function () {
+                    return this.eGui;
+                };
+
+                ImageCellRenderer.prototype.init = function (params) {
+                    this.eGui = document.createElement('div');
+                    var src = `<img src= ${params.value} width='40' height='40'>`
+                    this.eGui.innerHTML = src;
+                };
+
+                ImageCellRenderer.prototype.getGui = function () {
+                    return this.eGui;
+                };
+
+                EditFieldRender.prototype.init = function (params) {
+                    this.eGui = document.createElement('div');
+                    var text = '';
+                    if (params.value)
+                        text = '<button class="edit-button" id="editModalOpen" onclick="handleClickEdit(\'' + params.value + '\')" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>';
+                    this.eGui.innerHTML = text;
+                };
+
+                EditFieldRender.prototype.getGui = function () {
+                    return this.eGui;
+                };
+
+                DeleteFieldRender.prototype.init = function (params) {
+                    this.eGui = document.createElement('div');
+                    var text = '';
+                    if (params.value)
+                        text = '<button id="modalDelete" onclick="handleClickDelete(\'' + params.value + '\')">Delete</button>'
+                    this.eGui.innerHTML = text;
+                };
+
+                DeleteFieldRender.prototype.getGui = function () {
+                    return this.eGui;
+                };
+
+                function handleClickVarification(userID) {
+                    $.ajax({
+                        type: "post",
+                        url: '/user_verify',
+                        data: { id: userID },
+                        headers: {
+                            'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+                        },
+                        success: function (msg) {
+                            alert("Student Varified Sucessfully")
+                            get_grid_load();
+                        }
+                    });
+                }
+
+                function handleClickDelete(id) {
+                    $.ajax({
+                        type: "post",
+                        url: '/user_delete',
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+                        },
+                        success: function (msg) {
+                            alert("Student Deleted Sucessfully")
+                            get_grid_load();
+                        }
+                    });
+                }
+
+                function handleClickEdit(userID) {
+                    $.ajax({
+                        type: "get",
+                        url: '/user_details',
+                        data: { id: userID },
+                        success: function (msg) {
+                            editValueSet(msg);
+                        }
+                    });
+                }
+                function editValueSet(data) {
+                    $('#editName').val(data.name);
+                    $('#user_id').val(data.id);
+                    $('#editDob').val(data.dob);
+                    $('#editAddress').val(data.address);
+                }
+
+                function hideModal() {
+                    var modal = new bootstrap.Modal(document.getElementById('editModal'));
+                    modal.hide(); // This will hide the modal
+                }
+                $('#editForm').submit(function (e) {
+                    e.preventDefault();
+                    var modal = new bootstrap.Modal(document.getElementById('editModal'));
+                    modal.show();
+                    const editedData = {
+                        name: $('#editName').val(),
+                        dob: $('#editDob').val(),
+                        address: $('#editAddress').val(),
+                        id: $('#user_id').val(),
+                    };
+                    $.ajax({
+                        type: "post",
+                        url: '/user_update',
+                        data: editedData,
+                        headers: {
+                            'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+                        },
+                        success: function (msg) {
+                            hideModal();
+                            alert("Student Edited Sucessfully")
+                            get_grid_load();
+                        }
+                    });
+                });
+
+                $('#uploadButton').click(function () {
+                    const fileInput = document.querySelector('#upload_datafile');
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        alert('Please select a CSV file.');
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('csv_file', file);
+                    $.ajax({
+                        type: 'POST',
+                        url: '/save_mass_data_upload',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
+                        },
+                        success: function (response) {
+                        alert(response);
+                        $('#uploadModal').modal('hide');
+                            get_grid_load();
+                        },
+                        error: function () {
+                            console.log('Error occurred.');
+                        }
+                    });
+                });
+            </script>
         <% end %>
     <% end %>
 </body>
-
-<script>
- 
-    var $ = jQuery.noConflict();
-
-    var columnDefs = [
-		{ headerName: "Student Name", field: "name", cellStyle: { 'font-weight': 'bold', 'color': '#666666', 'padding-top': '15px', 'font-size': '15px', cellStyle: { 'padding-top': '15px', 'color': '#686868' } } },
-		{ headerName: "Email", field: "email", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
-		{ headerName: "Date of Birth", field: "dob", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
-		{ headerName: "Address", field: "address", cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
-		{ headerName: "Varification Status", field: "varified_by_admin&id", valueGetter: fullNameGetter, cellRenderer: VarificationFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
-		{ headerName: "Edit", field: "id", cellRenderer: EditFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } },
-		{ headerName: "Delete", field: "id", cellRenderer: DeleteFieldRender, cellStyle: { 'padding-top': '15px', 'color': '#686868' } }
-	];
-
-    function fullNameGetter(params) {
-		return params.data.varified_by_admin + '_' + params.data.id;
-	}
-
-   	var gridOptions;
-	gridOptions =
-	{
-		columnDefs: columnDefs,
-		rowData: null,
-		enableSorting: true,
-		enableFilter: true,
-		rowSelection: 'multiple',
-		headerHeight: 50,
-		rowHeight: 60,
-		enableRangeSelection: true,
-		enableStatusBar: false,
-		pagination: true,
-        suppressExcelExport: true,
-		suppressRowClickSelection: true,
-		onGridReady: function () { },
-		components: {
-			'editFieldRender': EditFieldRender,
-			'deleteFieldRender': DeleteFieldRender
-		},
-		tooltipShowDelay: 0,
-		tooltipHideDelay: 200000,
-	};
-
-	function onBtnExport() {
-        const columnsToInclude = ['name', 'email', 'dob', 'address'];
-        gridOptions.api.exportDataAsCsv({
-            columnKeys: columnsToInclude,
-            fileName: 'student_data.csv'
-    });
-    }
-
-    function get_grid_load() {
-		createNewDatasource();
-    }
-    $(document).ready(function () {
-        get_grid_load();
-        var gridDiv = document.querySelector('#agGrid');
-		new agGrid.Grid(gridDiv, gridOptions);
-	});
-
-    function createNewDatasource() {
-		$('#loader').removeClass('display-none')
-		$.ajax({
-			type: "get",
-			url: "/all_user",
-			success: function (msg) {
-				var grid_data = msg;
-				gridOptions.api.setRowData(msg);
-				$('#loader').addClass('display-none')
-			}
-		});
-
-	}
-
-    function VarificationFieldRender() { }
-	function EditFieldRender() { }
-	function DeleteFieldRender() { }
-
-    VarificationFieldRender.prototype.init = function (params) {
-        console.log(params.value.split("_")[0]);
-		this.eGui = document.createElement('div');
-		var text = '';
-		if (params.value.split("_")[0] != "false")
-            text = '<span style = "color: green;"> Varified </span>'
-        else
-			text = '<button id="" onclick="handleClickVarification(\'' + params.value.split("_")[1] + '\')">Varify</button>'
-		this.eGui.innerHTML = text;
-	};
-
-	VarificationFieldRender.prototype.getGui = function () {
-		return this.eGui;
-	};
-
-	EditFieldRender.prototype.init = function (params) {
-        this.eGui = document.createElement('div');
-        var text = '';
-        if (params.value)
-            text = '<button class="edit-button" data-userid="' + params.value + '">Edit</button>';
-        this.eGui.innerHTML = text;
-    };
-
-    EditFieldRender.prototype.getGui = function () {
-        return this.eGui;
-    };
-
-	DeleteFieldRender.prototype.init = function (params) {
-		this.eGui = document.createElement('div');
-		var text = '';
-		if (params.value)
-			text = '<button id="modalDelete" onclick="handleClickDelete(\'' + params.value + '\')">Delete</button>'
-		this.eGui.innerHTML = text;
-	};
-
-	DeleteFieldRender.prototype.getGui = function () {
-		return this.eGui;
-	};
-
-    function handleClickVarification(userID) {
-		$.ajax({
-			type: "post",
-			url: '/user_verify',
-			data: { id: userID },
-            headers: {
-                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
-            },
-			success: function (msg) {
-				alert("Student Varified Sucessfully")
-                get_grid_load();
-			}
-		});
-	}
-
-	function handleClickDelete(id) {
-		$.ajax({
-			type: "post",
-			url: '/user_delete',
-			data: { id: id },
-            headers: {
-                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
-            },
-			success: function (msg) {
-				alert("Student Deleted Sucessfully")
-                get_grid_load();
-			}
-		});
-	}
-
-    function handleClickEdit(userID) {
-		$.ajax({
-			type: "get",
-			url: '/user_details',
-			data: { id: userID },
-			success: function (msg) {
-                console.log(msg);
-				editValueSet(msg);
-			}
-		});
-	}
-    function editValueSet(data) {
-        $('#editName').val(data.name);
-        $('#user_id').val(data.id);
-        $('#editDob').val(data.dob);
-        $('#editAddress').val(data.address);
-        
-        $('#editModal').modal('show');
-    }
-
-    $('#editForm').submit(function (e) {
-        e.preventDefault();
-
-        const editedData = {
-            name: $('#editName').val(),
-            dob: $('#editDob').val(),
-            address: $('#editAddress').val(),
-            id: $('#user_id').val(),
-        };
-        console.log(editedData)
-        $.ajax({
-			type: "post",
-			url: '/user_update',
-			data: editedData,
-            headers: {
-                'X-CSRF-TOKEN':'<%= form_authenticity_token %>'
-            },
-			success: function (msg) {
-                $('#editModal').modal('hide');
-				alert("Student Edited Sucessfully")
-                get_grid_load();
-			}
-		});
-    });
-    $(document).on('click', '.edit-button', function () {
-        var userID = $(this).data('userid');
-        handleClickEdit(userID);
-    });
-
-</script>
+</html>

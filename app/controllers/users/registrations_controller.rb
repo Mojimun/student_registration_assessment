@@ -4,14 +4,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # before_action :configure_sign_up_params, only: [:create]
   # before_action :configure_account_update_params, only: [:update]
   # GET /resource/sign_up
-  def new
-    super
-  end
+  # def new
+  #   super
+  # end
 
   # POST /resource
-  def create
-    super
-  end
+  # def create
+  #   super
+  # end
 
   # GET /resource/edit
   # def edit
@@ -52,13 +52,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # The path used after sign up.
   def after_sign_up_path_for(resource)
      super(resource)
+     admin_data = User.where(user_type: 'admin').first
+     message = "#{resource.email} registered please approve."
+     subject = "User registration"
+     UserMailer.send_mail(admin_data['email'], subject, message).deliver
      sign_out current_user
      root_path
   end
   
-  def after_create(user)
-    UserMailer.welcome_email(user).deliver_now
-  end
   # The path used after sign up for inactive accounts.
   # def after_inactive_sign_up_path_for(resource)
   #   super(resource)

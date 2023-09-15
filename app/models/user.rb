@@ -33,5 +33,5 @@ class User < ApplicationRecord
     user.address = params[:address]
     user.save
   end
-
+  
 end
