@@ -40,14 +40,14 @@ class HomeController < ApplicationController
     end
 
     def user_verify
-        data = User.user_verify(params[:id])
+        data = User.user_verify(params)
     end
     def user_delete
-        data = User.user_delete(params[:id])
+        data = User.user_delete(params[:ids])
     end
 
-    def user_update
-        data = User.user_update(params)
+    def user_add_and_update
+        data = User.user_add_and_update(params)
     end
     	
     def save_mass_data_upload
@@ -56,28 +56,29 @@ class HomeController < ApplicationController
 		@error_msg=""
 		if file_extention ==".csv"
             total_count=0
-            directory = "/mnt/d/assesment/user_registration_system/public/uploads"
+            # directory = "/mnt/d/assesment/user_registration_system/public/uploads"
+            directory = File.join(Rails.root, 'public', 'uploads')
             if !(File.directory? directory) 
                FileUtils.mkdir_p directory, :mode => 0777 rescue nil
-           end
+            end
             time = Time.now().strftime("%m_%d_%Y_%I_%M_%S%p")
             file_name = csv_file.original_filename.gsub(file_extention, "_").gsub(" ", "_")
             target_file_name = "#{file_name}_#{time}#{file_extention}"
             target_file_name_path="#{directory}/#{target_file_name}"
-            FileUtils.move params[:csv_file].path, target_file_name_path
-            File.open(target_file_name_path, "wb") { |f| f.write( params[:csv_file].read) }
+            FileUtils.move csv_file.path, target_file_name_path
+            File.open(target_file_name_path, "wb") { |f| f.write( csv_file.read) }
             CSV.foreach(target_file_name_path, headers: true) do |row|
                 begin
                     user = User.find_by(email: row['email'])
                     if user.nil?
+                        password = row['dob'].to_s.strip.gsub("-", "")
                         user = User.create!(
                         email: row['email'],
                         name: row['name'],
                         dob: row['dob'],
                         address: row['address'],
-                        password: row['dob'].to_s.strip.gsub("-", "")
+                        password: password
                         )
-                        password = row['dob'].to_s.strip.gsub("-", "")
                         UserMailer.welcome_email(user, password).deliver
                         total_count +=1
                     end
