@@ -1,16 +1,89 @@
-<h2>Forgot your password?</h2>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    color: #a8abba;
+    background-color: #f2f2f2;
+  }
 
-<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+  .container {
+    justify-content: center;
+    align-items: center;
+    height: 350px;
+    width: 350px;
+    padding: 20px;
+    max-width: 750px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 5px;
+    margin: 10% auto;
+  }
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #707683;
+  }
 
-  <div class="actions">
-    <%= f.submit "Send me reset password instructions" %>
-  </div>
-<% end %>
+  .field {
+    margin-bottom: 20px;
+  }
 
-<%= render "devise/shared/links" %>
+  label {
+    display: block;
+    font-weight: bold;
+  }
+
+  input[type="email"] {
+    width: 90%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #243656;
+  }
+
+  .actions {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .actions input[type="submit"] {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .actions input[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+</style>
+
+<div class="container">
+  <h2>Forgot your password?</h2>
+
+  <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div class="field">
+      <%= f.label :email %><br />
+      <%= f.email_field :email, autofocus: true, autocomplete: "off", placeholder: "Enter your email", required: true%>
+    </div>
+    <label>**Note: Reset link will be send your email**</label>
+    <div class="actions">
+      <%= f.submit "Send" %>
+    </div><br />
+  <% end %>
+  Back to
+  <%= render "devise/shared/links" %>
+</div>
+

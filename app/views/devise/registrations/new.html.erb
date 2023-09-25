@@ -1,47 +1,178 @@
-<h2>Sign up</h2>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    color: #a8abba;
+  }
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    height: auto;
+    margin: auto;
+    border-radius: 5px;
+    background-color: #fff;
+    max-width: 750px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: absolute;
+    padding-bottom: 20px !important;
+    margin-top: 30px !important;
+  }
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
+  .right-panel {
+    flex: 1;
+    border-radius: 5px 0 0 5px;
+    overflow: hidden;
+  }
 
-  <div class="field">
-    <%= f.label :avatar %>
-    <%= f.file_field :avatar, accept: 'image/*' %>
-  </div>
+  .right-panel img {
+    width: 100%; 
+    height: auto; 
+  }
 
-  <div class="field">
-    <%= f.label :name %>
-    <%= f.text_field :name %>
-  </div>
-  <div class="field">
-    <%= f.label :dob %>
-    <%= f.date_field :dob %>
-  </div>
-  <div class="field">
-    <%= f.label :address %>
-    <%= f.text_field :address %>
-  </div>
+  .left-panel {
+    flex: 1;
+    background-color: #fff;
+    border-radius: 0 5px 5px 0;
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #707683;
+  }
+
+  .field {
+    margin-bottom: 10px;
+  }
+
+  label {
+    display: block;
+    font-weight: bold;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="password"] {
+    width: 90%;
+    padding: 7px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #243656;
+  }
+
+  .actions {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .actions input[type="submit"] {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .actions input[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
   
-  <div class="field">
-    <%= f.label :password %>
-    <% if @minimum_password_length %>
-    <em>(<%= @minimum_password_length %> characters minimum)</em>
-    <% end %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
+    .right-panel {
+      border-radius: 5px 5px 0 0;
+    }
+  
+    .left-panel {
+      border-radius: 0 0 5px 5px;
+    }
+  }
+</style>
+<div class="container">
+  <div class="left-panel">
+    <h2>Sign up</h2>
 
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="actions">
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
+      <div class="field">
+        <%= f.label :email, "Email :"%>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "Enter Your Email" %>
+      </div>
 
-<%= render "devise/shared/links" %>
+      <div class="field">
+        <%= f.label :avatar, "Image :" %>
+        <%= f.file_field :avatar, accept: 'image/*', placeholder: "Choose an avatar image", id: 'avatar-input' %>
+      </div>
+
+      <div class="field">
+        <%= f.label :name, "Name :"%>
+        <%= f.text_field :name, placeholder: "Enter Your Full Name" %>
+      </div>
+      <div class="field">
+        <%= f.label :dob, "Date of Birth :" %>
+        <%= f.date_field :dob, placeholder: "Select Your Date of Birth" %>
+      </div>
+      <div class="field">
+        <%= f.label :address, "Address :" %>
+        <%= f.text_field :address, placeholder: "Enter Your Full Address" %>
+      </div>
+      
+      <div class="field">
+        <%= f.label :password, "Password :" %>
+        <% if @minimum_password_length %>
+        <em>(<%= @minimum_password_length %> characters minimum)</em>
+        <% end %>
+        <%= f.password_field :password, autocomplete: "new-password", placeholder: "Enter Your Password" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password_confirmation, "Confirm Password :"%>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "Confirm Your Password" %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Sign up" %>
+      </div>
+    <% end %>
+    Back to
+    <%= render "devise/shared/links" %>
+
+  </div>
+  <div class="right-panel">
+    <div class="image-preview">
+    <%= image_tag "/images/signup-image.jpg", id: "avatar-preview", alt: "Avatar Preview"%>
+  </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarPreview = document.getElementById('avatar-preview');
+    avatarInput.addEventListener('change', function () {
+      const file = avatarInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          avatarPreview.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+</script>

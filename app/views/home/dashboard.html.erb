@@ -1,4 +1,81 @@
-<% if current_user.user_type == "student" %>
-    <h1>Welcome, <%= @user.email %>!</h1>
-    <p>Your user ID is <%= @user.id %></p>
+<style>
+  .profile-container {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    margin: 10% 30% 0% 30%;
+  }
+
+  .profile-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+  }
+
+  .avatar img {
+    max-width: 150px;
+  }
+
+  .user-details {
+    flex-grow: 1;
+    text-align: left;
+    margin-left: 20px;
+  }
+
+  .user-details p {
+    margin: 5px 0;
+    font-size: 18px;
+  }
+
+  .edit-profile-link {
+    display: block;
+    margin-top: 10px;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+  }
+
+  .edit-profile-link:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<% if user_signed_in? %>
+  <% if current_user.user_type == "student" %>
+    <div>
+      <div class="profile-container">
+        <div style="text-align: right;">
+          <span>Welcome: <%= current_user.name %></span> | <%= link_to destroy_user_session_path, class: 'fa-solid fa-right-from-bracket' do %>
+          Logout
+          <% end %>
+        </div>
+        <h1>Profile</h1>
+        <div class="profile-info">
+          <% if current_user.avatar.attached? %>
+            <div class="avatar">
+              <%= image_tag current_user.avatar %>
+            </div>
+          <% end %>
+          <div class="user-details">
+            <p>Name: <%= current_user.name %></p>
+            <p>Date of Birth: <%= current_user.dob %></p>
+            <p>Address: <%= current_user.address %></p>
+            <p>Email: <%= current_user.email %></p>
+                <%= link_to 'Edit Profile', edit_user_registration_path, class: 'edit-profile-link' %>
+                <%= link_to 'Change Password', edit_user_password_path, class: 'edit-profile-link'%>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
 <% end %>
+
+
+
